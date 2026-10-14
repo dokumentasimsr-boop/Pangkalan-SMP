@@ -1,0 +1,6 @@
+{
+  "name": "Sistem Administrasi Pramuka Penggalang SMP IT Albashiroh Turen",
+  "description": "Sistem Informasi dan Administrasi Digital Pramuka Penggalang Pangkalan SMP IT Albashiroh Turen lengkap dengan Database Spreadsheet, Presensi, SKU, SKK, Keuangan, Inventaris, dan Laporan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
