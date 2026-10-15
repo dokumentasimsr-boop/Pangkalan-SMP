@@ -23,6 +23,7 @@ import { GasDeploymentGuideView } from './components/GasDeploymentGuideView';
 import { PengaturanView } from './components/PengaturanView';
 import { ManajemenUserView } from './components/ManajemenUserView';
 import { LogAktivitasView } from './components/LogAktivitasView';
+import { PengaturanLandingView } from './components/PengaturanLandingView';
 import { LoginModal } from './components/LoginModal';
 import { LandingAndLoginPortal } from './components/LandingAndLoginPortal';
 import { GasService, FullDatabasePayload, DEFAULT_GAS_URL } from './services/gasService';
@@ -50,7 +51,9 @@ import {
   SuratRecord,
   User,
   UserRole,
+  LandingPageContent,
 } from './types';
+import { defaultLandingContent } from './data/initialLandingData';
 
 import {
   initialConfig,
@@ -274,6 +277,44 @@ function MainApp() {
     const saved = localStorage.getItem('pramuka_logs');
     return saved ? JSON.parse(saved) : initialLogs;
   });
+
+  // Landing Page Customized Content State
+  const [landingContent, setLandingContent] = useState<LandingPageContent>(() => {
+    const saved = localStorage.getItem('pramuka_landing_content');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {}
+    }
+    return defaultLandingContent;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('pramuka_landing_content', JSON.stringify(landingContent));
+  }, [landingContent]);
+
+  const handleSaveLandingContent = (updated: LandingPageContent) => {
+    setLandingContent(updated);
+    localStorage.setItem('pramuka_landing_content', JSON.stringify(updated));
+    // Keep pangkalan config synchronized with identical properties
+    setConfig((prev) => {
+      const merged = {
+        ...prev,
+        namaPangkalan: updated.identitas.namaPangkalan || prev.namaPangkalan,
+        namaSekolah: updated.identitas.namaSekolah || prev.namaSekolah,
+        nomorGudepPutra: updated.identitas.nomorGudepPutra || prev.nomorGudepPutra,
+        nomorGudepPutri: updated.identitas.nomorGudepPutri || prev.nomorGudepPutri,
+        kwarran: updated.identitas.kwarran || prev.kwarran,
+        kwarcab: updated.identitas.kwarcab || prev.kwarcab,
+        kwarda: updated.identitas.kwarda || prev.kwarda,
+        alamat: updated.identitas.alamat || prev.alamat,
+        telepon: updated.identitas.telepon || prev.telepon,
+        email: updated.identitas.email || prev.email,
+      };
+      localStorage.setItem('pramuka_config', JSON.stringify(merged));
+      return merged;
+    });
+  };
 
   // Save to LocalStorage effects
   useEffect(() => {
@@ -655,6 +696,7 @@ function MainApp() {
     return (
       <LandingAndLoginPortal
         config={config}
+        landingContent={landingContent}
         users={users}
         currentUser={currentUser}
         onLoginSuccess={(loggedInUser) => {
@@ -733,6 +775,16 @@ function MainApp() {
               jadwalLatihan={jadwalList}
               logs={logs}
               onNavigate={setActiveTab}
+            />
+          )}
+
+          {activeTab === 'pengaturan-landing' && (
+            <PengaturanLandingView
+              content={landingContent}
+              onSaveContent={handleSaveLandingContent}
+              currentUserRole={currentRole}
+              onPreviewLanding={() => setIsViewingLanding(true)}
+              onAddLog={handleAddLog}
             />
           )}
 

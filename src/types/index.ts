@@ -348,6 +348,7 @@ export interface LogAktivitas {
 
 export type ActiveTab =
   | 'dashboard'
+  | 'pengaturan-landing'
   | 'pembina'
   | 'anggota'
   | 'regu'
@@ -368,3 +369,104 @@ export type ActiveTab =
   | 'pengaturan'
   | 'manajemen-user'
   | 'log-aktivitas';
+
+// Landing Page Management Interfaces
+export interface LandingHeroConfig {
+  tagline: string;
+  title: string;
+  description: string;
+  heroImageUrl: string;
+  badgeAkbarTitle: string;
+  badgeAkbarSub: string;
+  badgeSkuTitle: string;
+  badgeSkuSub: string;
+  kwardaText: string;
+}
+
+export interface LandingKegiatanItem {
+  id: string;
+  judul: string;
+  kategori: string;
+  namaKegiatan: string;
+  deskripsi: string;
+  imageUrl: string;
+  sasaran: string;
+  frekuensi: string;
+  tagWarna?: 'amber' | 'emerald' | 'blue' | 'purple' | string;
+  icon?: string;
+  poinHighlights?: string[];
+}
+
+export interface LandingKarakterItem {
+  id: string;
+  nomor: number;
+  istilahArab: string;
+  arti: string;
+  keterangan?: string;
+}
+
+export interface LandingKodeKehormatan {
+  triSatyaTitle: string;
+  triSatyaIntro: string;
+  triSatyaPoin: string[];
+  dasaDarmaTitle: string;
+  dasaDarmaItems: string[];
+  karakterSITTitle: string;
+  karakterSITItems: LandingKarakterItem[];
+  catatanKarakter?: string;
+}
+
+export interface LandingReguItem {
+  id: string;
+  nama: string;
+  gender: 'Pa' | 'Pi';
+  semboyan?: string;
+  pinru?: string;
+  jumlahAnggota?: number;
+  iconEmoji?: string;
+  lambangUrl?: string;
+}
+
+export interface LandingPembinaItem {
+  id: string;
+  nama: string;
+  gelar: string;
+  jabatan: string;
+  gender: 'Pa' | 'Pi';
+  kontak?: string;
+  email?: string;
+  fotoUrl?: string;
+  pesanMotivasi?: string;
+}
+
+export interface LandingDataReguPembina {
+  namaPasukanPutra: string;
+  noGudepPutra: string;
+  namaPasukanPutri: string;
+  noGudepPutri: string;
+  reguPutra: LandingReguItem[];
+  reguPutri: LandingReguItem[];
+  pembinaList: LandingPembinaItem[];
+}
+
+export interface LandingPageContent {
+  identitas: {
+    namaPangkalan: string;
+    namaSekolah: string;
+    nomorGudepPutra: string;
+    nomorGudepPutri: string;
+    kwarran: string;
+    kwarcab: string;
+    kwarda: string;
+    alamat: string;
+    telepon: string;
+    email: string;
+    website?: string;
+    logoPangkalanUrl?: string;
+    hero: LandingHeroConfig;
+  };
+  galeriKegiatan: LandingKegiatanItem[];
+  kodeKehormatan: LandingKodeKehormatan;
+  reguDanPembina: LandingDataReguPembina;
+}
+

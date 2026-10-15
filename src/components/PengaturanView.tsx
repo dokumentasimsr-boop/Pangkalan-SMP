@@ -281,6 +281,17 @@ export const PengaturanView: React.FC<PengaturanViewProps> = ({
             Konfigurasi Nomor Gudep, Mabigus, Sinkronisasi Google Spreadsheet, dan Google Apps Script
           </p>
         </div>
+
+        {onNavigateToTab && (
+          <button
+            type="button"
+            onClick={() => onNavigateToTab('pengaturan-landing')}
+            className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white rounded-xl text-xs font-bold shadow-md shadow-amber-950/20 flex items-center gap-2 shrink-0 transition-all border border-amber-600/40"
+          >
+            <Globe className="w-4 h-4 text-amber-200" />
+            <span>Atur Konten Landing Page & Galeri &rarr;</span>
+          </button>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

@@ -20,6 +20,7 @@ import {
   ChevronRight,
   Shield,
   FileText,
+  Globe,
 } from 'lucide-react';
 import {
   Anggota,
@@ -144,10 +145,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <div className="flex flex-wrap gap-2.5">
             <button
-              onClick={() => onNavigate('presensi')}
-              className="px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold transition-all shadow-md shadow-amber-950/40 flex items-center gap-2"
+              onClick={() => onNavigate('pengaturan-landing')}
+              className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-amber-950/40 flex items-center gap-2 border border-amber-500/40"
             >
-              <ClipboardCheck className="w-4 h-4" />
+              <Globe className="w-4 h-4 text-amber-200" />
+              <span>Kelola Landing Page</span>
+            </button>
+            <button
+              onClick={() => onNavigate('presensi')}
+              className="px-4 py-2.5 bg-stone-800/90 hover:bg-stone-700 text-stone-200 hover:text-white rounded-xl text-xs font-semibold transition-all border border-stone-700 flex items-center gap-2"
+            >
+              <ClipboardCheck className="w-4 h-4 text-emerald-400" />
               <span>Input Presensi</span>
             </button>
             <button

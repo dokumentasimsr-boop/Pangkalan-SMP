@@ -25,6 +25,7 @@ import {
   ChevronRight,
   Sparkles,
   Globe,
+  LayoutTemplate,
 } from 'lucide-react';
 import { ActiveTab, AppConfig, User } from '../types';
 
@@ -108,8 +109,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ],
     },
     {
-      group: 'SISTEM & AUDIT',
+      group: 'PORTAL & SISTEM',
       items: [
+        { id: 'pengaturan-landing' as ActiveTab, label: 'Kelola Landing Page', icon: LayoutTemplate, highlight: true, roles: ['ADMIN', 'PEMBINA'] },
         { id: 'pengaturan' as ActiveTab, label: 'Pengaturan Gudep', icon: Settings, roles: ['ADMIN'] },
         { id: 'manajemen-user' as ActiveTab, label: 'Manajemen User', icon: ShieldCheck, roles: ['ADMIN'] },
         { id: 'log-aktivitas' as ActiveTab, label: 'Log Aktivitas', icon: Activity, roles: ['ADMIN'] },

@@ -30,16 +30,15 @@ import {
   ExternalLink,
   RefreshCw,
   Home,
+  MessageSquare,
 } from 'lucide-react';
-import { AppConfig, User, UserRole } from '../types';
+import { AppConfig, User, UserRole, LandingPageContent } from '../types';
 import { DEFAULT_GAS_URL } from '../services/gasService';
-
-// Generated authentic scout images
-import heroCampImg from '../assets/images/pramuka_camp_hero_1792028474074.jpg';
-import pioneeringImg from '../assets/images/pramuka_pioneering_1792028495129.jpg';
+import { defaultLandingContent, heroCampImg, pioneeringImg, upacaraImg } from '../data/initialLandingData';
 
 interface LandingAndLoginPortalProps {
   config: AppConfig;
+  landingContent?: LandingPageContent;
   users: User[];
   currentUser: User | null;
   onLoginSuccess: (user: User) => void;
@@ -50,6 +49,7 @@ interface LandingAndLoginPortalProps {
 
 export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
   config,
+  landingContent,
   users,
   currentUser,
   onLoginSuccess,
@@ -57,16 +57,18 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
   onContinueToDashboard,
   isSyncingGas = false,
 }) => {
+  const content = landingContent || defaultLandingContent;
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [activeTab, setActiveTab] = useState<'beranda' | 'kegiatan' | 'karakter' | 'login'>('beranda');
+  const [activeTab, setActiveTab] = useState<'beranda' | 'kegiatan' | 'karakter' | 'regu' | 'login'>('beranda');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const pangkalanName = config.namaPangkalan || 'PANGKALAN SMP IT ALBASHIROH TUREN';
-  const gudepPa = config.nomorGudepPutra || config.nomorGudepPa || '24.081';
-  const gudepPi = config.nomorGudepPutri || config.nomorGudepPi || '24.082';
+  const pangkalanName = content.identitas.namaPangkalan || config.namaPangkalan || 'PANGKALAN SMP IT ALBASHIROH TUREN';
+  const gudepPa = content.identitas.nomorGudepPutra || config.nomorGudepPutra || config.nomorGudepPa || '24.081';
+  const gudepPi = content.identitas.nomorGudepPutri || config.nomorGudepPutri || config.nomorGudepPi || '24.082';
+  const heroData = content.identitas.hero;
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,7 +80,7 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
       const trimmedPass = (password || '').trim();
 
       const found = users.find(
-        u => (u.username || '').toLowerCase() === trimmedUser
+        (u) => (u.username || '').toLowerCase() === trimmedUser
       );
 
       if (!found) {
@@ -171,7 +173,7 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                 </span>
               </div>
               <h1 className="text-sm font-bold text-white tracking-tight leading-tight">
-                SMP IT ALBASHIROH TUREN
+                {content.identitas.namaSekolah || 'SMP IT ALBASHIROH TUREN'}
               </h1>
             </div>
           </div>
@@ -183,7 +185,11 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                 setActiveTab('beranda');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'beranda' ? 'text-amber-400 font-bold bg-stone-800/80' : 'hover:text-white hover:bg-stone-800/50'}`}
+              className={`px-3 py-1.5 rounded-lg transition-colors ${
+                activeTab === 'beranda'
+                  ? 'text-amber-400 font-bold bg-stone-800/80'
+                  : 'hover:text-white hover:bg-stone-800/50'
+              }`}
             >
               Beranda
             </button>
@@ -194,7 +200,7 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
               }}
               className="px-3 py-1.5 rounded-lg hover:text-white hover:bg-stone-800/50 transition-colors"
             >
-              Kegiatan & Mukhoyyam
+              Galeri & Liputan Kegiatan
             </button>
             <button
               onClick={() => {
@@ -203,13 +209,22 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
               }}
               className="px-3 py-1.5 rounded-lg hover:text-white hover:bg-stone-800/50 transition-colors"
             >
-              Karakter SIT & Dasa Darma
+              Kode Kehormatan & Karakter
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('regu');
+                scrollToSection('regu-section');
+              }}
+              className="px-3 py-1.5 rounded-lg hover:text-white hover:bg-stone-800/50 transition-colors"
+            >
+              Data Regu & Pembina
             </button>
             <button
               onClick={() => scrollToSection('kontak-section')}
               className="px-3 py-1.5 rounded-lg hover:text-white hover:bg-stone-800/50 transition-colors"
             >
-              Kontak & Gudep
+              Kontak Gudep
             </button>
           </div>
 
@@ -248,20 +263,24 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-950/80 border border-amber-700/60 text-amber-300 text-xs font-semibold shadow-inner">
                 <span className="flex h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-                <span>Satuan Komunitas Pramuka Sekolah Islam Terpadu (SIT)</span>
+                <span>{heroData.tagline || 'Satuan Komunitas Pramuka Sekolah Islam Terpadu (SIT)'}</span>
               </div>
 
               <div className="space-y-3">
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-                  Mencetak Pandu Penggalang{' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500">
-                    Tangguh, Mandiri & Berakhlak Qur'ani
-                  </span>
+                  {heroData.title.split('&').length > 1 ? (
+                    <>
+                      {heroData.title.split('&')[0]} &{' '}
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500">
+                        {heroData.title.split('&')[1]}
+                      </span>
+                    </>
+                  ) : (
+                    heroData.title
+                  )}
                 </h1>
                 <p className="text-stone-300 text-sm sm:text-base leading-relaxed max-w-2xl font-normal">
-                  Selamat datang di Portal Resmi Administrasi dan Informasi Kegiatan Kepramukaan{' '}
-                  <strong className="text-white font-semibold">{pangkalanName}</strong>. Terintegrasi
-                  langsung dengan Google Spreadsheet Cloud Database secara otomatis dan aman.
+                  {heroData.description}
                 </p>
               </div>
 
@@ -272,8 +291,12 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                     🏕️
                   </div>
                   <div>
-                    <div className="text-[10px] text-stone-400 uppercase font-semibold">Kegiatan Akbar</div>
-                    <div className="text-xs font-bold text-white">PERKASA Mukhoyyam</div>
+                    <div className="text-[10px] text-stone-400 uppercase font-semibold">
+                      {heroData.badgeAkbarSub || 'Kegiatan Akbar'}
+                    </div>
+                    <div className="text-xs font-bold text-white">
+                      {heroData.badgeAkbarTitle || 'PERKASA Mukhoyyam'}
+                    </div>
                   </div>
                 </div>
 
@@ -282,8 +305,12 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                     📜
                   </div>
                   <div>
-                    <div className="text-[10px] text-stone-400 uppercase font-semibold">SKU & SKK</div>
-                    <div className="text-xs font-bold text-white">Ramu, Rakit, Terap</div>
+                    <div className="text-[10px] text-stone-400 uppercase font-semibold">
+                      {heroData.badgeSkuSub || 'SKU & SKK'}
+                    </div>
+                    <div className="text-xs font-bold text-white">
+                      {heroData.badgeSkuTitle || 'Ramu, Rakit, Terap'}
+                    </div>
                   </div>
                 </div>
 
@@ -333,7 +360,7 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
               <div className="flex items-center gap-2 text-[11px] text-stone-400 pt-1">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>
-                  Gugus Depan <strong className="text-stone-300">24.081 - 24.082</strong> Kwartir Ranting Turen, Kwartir Cabang Malang, Jawa Timur.
+                  Gugus Depan <strong className="text-stone-300">{gudepPa} - {gudepPi}</strong> Kwartir Ranting {content.identitas.kwarran || 'Turen'}, Kwartir Cabang {content.identitas.kwarcab || 'Malang'}, {content.identitas.kwarda || 'Jawa Timur'}.
                 </span>
               </div>
             </div>
@@ -386,7 +413,7 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                         type="text"
                         required
                         value={username}
-                        onChange={e => setUsername(e.target.value)}
+                        onChange={(e) => setUsername(e.target.value)}
                         placeholder="admin / pembina / petugas"
                         className="w-full pl-9 pr-3 py-2.5 bg-stone-900 border border-stone-700/80 rounded-xl font-medium text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all"
                       />
@@ -403,7 +430,7 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                         type={showPassword ? 'text' : 'password'}
                         required
                         value={password}
-                        onChange={e => setPassword(e.target.value)}
+                        onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
                         className="w-full pl-9 pr-10 py-2.5 bg-stone-900 border border-stone-700/80 rounded-xl font-medium text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all"
                       />
@@ -450,7 +477,7 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                     <button
                       type="button"
                       onClick={() => {
-                        const adminUser = users.find(u => u.role === 'ADMIN') || {
+                        const adminUser = users.find((u) => u.role === 'ADMIN') || {
                           id: 'USR-001',
                           username: 'admin',
                           nama: 'Kak Yaqin (Admin)',
@@ -484,7 +511,7 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                     <button
                       type="button"
                       onClick={() => {
-                        const pembinaUser = users.find(u => u.role === 'PEMBINA') || {
+                        const pembinaUser = users.find((u) => u.role === 'PEMBINA') || {
                           id: 'USR-002',
                           username: 'pembina',
                           nama: 'Kak Itsna (Pembina Putri)',
@@ -518,7 +545,7 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                     <button
                       type="button"
                       onClick={() => {
-                        const petugasUser = users.find(u => u.role === 'PETUGAS') || {
+                        const petugasUser = users.find((u) => u.role === 'PETUGAS') || {
                           id: 'USR-003',
                           username: 'petugas',
                           nama: 'Kak Putri (Petugas TU)',
@@ -550,7 +577,7 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                   </div>
                 </div>
 
-                {/* Guest / Reviewer Quick Access */}
+                {/* Guest Access */}
                 <div className="mt-4 pt-3 border-t border-stone-800 text-center">
                   <button
                     type="button"
@@ -576,7 +603,7 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
               <span>Program & Aktivitas Kepanduan</span>
             </div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
-              Kegiatan Unggulan Pramuka SIT Albashiroh
+              Galeri & Liputan Kegiatan Pramuka SIT Albashiroh
             </h2>
             <p className="text-stone-300 text-xs sm:text-sm">
               Memadukan kurikulum kepramukaan nasional Gerakan Pramuka dengan nilai-nilai luhur keislaman
@@ -584,207 +611,55 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
             </p>
           </div>
 
-          {/* Cards Grid */}
+          {/* Cards Grid Dynamically Rendered */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Card 1: PERKASA Mukhoyyam with generated image */}
-            <div className="bg-stone-950 rounded-3xl border border-stone-800 overflow-hidden shadow-xl hover:border-amber-600/50 transition-all flex flex-col group">
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src={heroCampImg}
-                  alt="Perkemahan Akbar Santri Albashiroh PERKASA"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/20 to-transparent" />
-                <span className="absolute top-3 right-3 bg-amber-600/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md">
-                  Perkemahan Akbar
-                </span>
-              </div>
-              <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-amber-400 text-xs font-bold">
-                    <Tent className="w-4 h-4" />
-                    <span>MUKHOYYAM PERKASA</span>
+            {content.galeriKegiatan.map((item, idx) => (
+              <div
+                key={item.id || idx}
+                className="bg-stone-950 rounded-3xl border border-stone-800 overflow-hidden shadow-xl hover:border-amber-600/50 transition-all flex flex-col group"
+              >
+                <div className="relative h-48 overflow-hidden bg-stone-900">
+                  <img
+                    src={item.imageUrl || heroCampImg}
+                    alt={item.namaKegiatan}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/20 to-transparent" />
+                  <span className="absolute top-3 right-3 bg-amber-600/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md">
+                    {item.kategori}
+                  </span>
+                </div>
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5 text-amber-400 text-xs font-bold uppercase tracking-wider">
+                      <Tent className="w-4 h-4" />
+                      <span>{item.judul}</span>
+                    </div>
+                    <h3 className="text-base font-bold text-white">
+                      {item.namaKegiatan}
+                    </h3>
+                    <p className="text-stone-400 text-xs leading-relaxed">
+                      {item.deskripsi}
+                    </p>
+
+                    {item.poinHighlights && item.poinHighlights.length > 0 && (
+                      <div className="space-y-1.5 pt-2">
+                        {item.poinHighlights.map((point, pIdx) => (
+                          <div key={pIdx} className="flex items-center gap-2 text-xs text-stone-300">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            <span>{point}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <h3 className="text-base font-bold text-white">
-                    Perkemahan Akbar Santri Albashiroh
-                  </h3>
-                  <p className="text-stone-400 text-xs leading-relaxed">
-                    Kegiatan perkemahan alam terbuka tahunan santri SMP IT Albashiroh di kawasan sejuk Malang.
-                    Menempa ketangkasan, survival Islami, qiyamul lail, dan tadabbur alam.
-                  </p>
-                </div>
-                <div className="pt-2 border-t border-stone-800/80 flex items-center justify-between text-[11px] text-stone-400">
-                  <span>Sasaran: Seluruh Penggalang</span>
-                  <span className="text-emerald-400 font-semibold">1x Setahun</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 2: Latihan Rutin & Pioneering with generated image */}
-            <div className="bg-stone-950 rounded-3xl border border-stone-800 overflow-hidden shadow-xl hover:border-amber-600/50 transition-all flex flex-col group">
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src={pioneeringImg}
-                  alt="Latihan Rutin & Pioneering Pramuka SIT"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/20 to-transparent" />
-                <span className="absolute top-3 right-3 bg-emerald-600/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md">
-                  Pekan Latihan
-                </span>
-              </div>
-              <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold">
-                    <Flag className="w-4 h-4" />
-                    <span>LATIHAN RUTIN PEKANAN</span>
+                  <div className="pt-3 border-t border-stone-800/80 flex items-center justify-between text-[11px] text-stone-400">
+                    <span>Sasaran: <strong className="text-stone-300">{item.sasaran}</strong></span>
+                    <span className="text-emerald-400 font-semibold">{item.frekuensi}</span>
                   </div>
-                  <h3 className="text-base font-bold text-white">
-                    Pioneering, Sandi, & Semaphore
-                  </h3>
-                  <p className="text-stone-400 text-xs leading-relaxed">
-                    Penguasaan tali temali, menara pandang, tandu darurat, sandi kotak 1 & 2, sandi morse, serta
-                    pengujian butir SKU Penggalang Ramu, Rakit, dan Terap secara berjenjang.
-                  </p>
-                </div>
-                <div className="pt-2 border-t border-stone-800/80 flex items-center justify-between text-[11px] text-stone-400">
-                  <span>Waktu: Setiap Pekan</span>
-                  <span className="text-amber-400 font-semibold">Uji SKU Mandiri</span>
                 </div>
               </div>
-            </div>
-
-            {/* Card 3: Spiritual Scouting */}
-            <div className="bg-stone-950 rounded-3xl border border-stone-800 p-6 shadow-xl hover:border-amber-600/50 transition-all flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center text-xl">
-                  📖
-                </div>
-                <div>
-                  <div className="text-[10px] text-amber-400 font-bold uppercase tracking-wider">
-                    Karakter Islami Terpadu
-                  </div>
-                  <h3 className="text-base font-bold text-white mt-1">
-                    Spiritual Scouting & Bina Pribadi Islami
-                  </h3>
-                </div>
-                <p className="text-stone-400 text-xs leading-relaxed">
-                  Ciri khas kepanduan SIT: Membiasakan shalat berjamaah awal waktu, tilawah Al-Qur'an dan mutaba'ah
-                  amal yaumi di tenda perkemahan, hafalan doa harian, dan adab santri Islami.
-                </p>
-              </div>
-
-              <div className="space-y-2 pt-3 border-t border-stone-800/80 text-xs text-stone-300">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>Dzikir Pagi-Petang Al-Ma'tsurat</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>Qiyamul Lail di Alam Terbuka</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>Kultum & Muhasabah Santri</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 4: Penjelajahan Alam (Wide Game) */}
-            <div className="bg-stone-950 rounded-3xl border border-stone-800 p-6 shadow-xl hover:border-amber-600/50 transition-all flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xl">
-                  🧭
-                </div>
-                <div>
-                  <div className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
-                    Ketangkasan & Fisik
-                  </div>
-                  <h3 className="text-base font-bold text-white mt-1">
-                    Wide Game & Penjelajahan Alam
-                  </h3>
-                </div>
-                <p className="text-stone-400 text-xs leading-relaxed">
-                  Menjelajahi keindahan alam sekitar Turen, Malang dengan menggunakan peta pita, kompas bidik,
-                  sandi jejak, dan pos ketangkasan halang rintang untuk membangun kekompakan regu.
-                </p>
-              </div>
-
-              <div className="space-y-2 pt-3 border-t border-stone-800/80 text-xs text-stone-300">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>Regu Garuda & Regu Melati</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>Navigasi Darat & Kompas Bidik</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 5: Pelantikan & SKK */}
-            <div className="bg-stone-950 rounded-3xl border border-stone-800 p-6 shadow-xl hover:border-amber-600/50 transition-all flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center text-xl">
-                  🎖️
-                </div>
-                <div>
-                  <div className="text-[10px] text-purple-400 font-bold uppercase tracking-wider">
-                    Pencapaian & Kenaikan
-                  </div>
-                  <h3 className="text-base font-bold text-white mt-1">
-                    Pelantikan Kenaikan Tingkat & SKK
-                  </h3>
-                </div>
-                <p className="text-stone-400 text-xs leading-relaxed">
-                  Pemberian Tanda Kecakapan Umum (TKU) bagi Penggalang Ramu, Rakit, dan Terap yang telah
-                  menyelesaikan butir uji bersama para Pembina Mahir.
-                </p>
-              </div>
-
-              <div className="space-y-2 pt-3 border-t border-stone-800/80 text-xs text-stone-300">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>Ujian SKU Digital via Aplikasi</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>Penyematan Lencana TKK</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 6: Bakti Sosial & Lingkungan */}
-            <div className="bg-stone-950 rounded-3xl border border-stone-800 p-6 shadow-xl hover:border-amber-600/50 transition-all flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center text-xl">
-                  🤝
-                </div>
-                <div>
-                  <div className="text-[10px] text-amber-400 font-bold uppercase tracking-wider">
-                    Pengabdian Masyarakat
-                  </div>
-                  <h3 className="text-base font-bold text-white mt-1">
-                    Bakti Sosial & Jihad Lingkungan
-                  </h3>
-                </div>
-                <p className="text-stone-400 text-xs leading-relaxed">
-                  Menanamkan rasa cinta sesama manusia dan peduli alam melalui aksi bersih tempat ibadah,
-                  penanaman pohon, dan bakti peduli warga sekitar Turen.
-                </p>
-              </div>
-
-              <div className="space-y-2 pt-3 border-t border-stone-800/80 text-xs text-stone-300">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>Darma 2: Cinta Alam & Kasih Sayang</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>Aksi Nyata Pramuka Penggalang</span>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -802,7 +677,7 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
               Kode Kehormatan & Karakter Pandu SIT
             </h2>
             <p className="text-stone-300 text-xs sm:text-sm">
-              Pedoman hidup setiap insan Pramuka Penggalang di Gugus Depan SMP IT Albashiroh Turen
+              Pedoman hidup setiap insan Pramuka Penggalang di Gugus Depan {pangkalanName}
             </p>
           </div>
 
@@ -816,17 +691,19 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                     ⚜️
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">Tri Satya Penggalang</h3>
+                    <h3 className="text-base font-bold text-white">
+                      {content.kodeKehormatan.triSatyaTitle || 'Tri Satya Penggalang'}
+                    </h3>
                     <p className="text-[11px] text-amber-400 font-semibold">Janji Kehormatan Pramuka</p>
                   </div>
                 </div>
 
                 <div className="text-xs text-stone-200 space-y-2 pl-4 border-l-2 border-amber-600/80 italic font-serif leading-relaxed">
-                  <p>Demi kehormatanku aku berjanji akan bersungguh-sungguh:</p>
+                  <p>{content.kodeKehormatan.triSatyaIntro || 'Demi kehormatanku aku berjanji akan bersungguh-sungguh:'}</p>
                   <ul className="list-disc pl-4 space-y-1.5 not-italic font-sans text-stone-300">
-                    <li>Menjalankan kewajibanku terhadap Tuhan Yang Maha Esa, Negara Kesatuan Republik Indonesia, dan mengamalkan Pancasila.</li>
-                    <li>Menolong sesama hidup dan mempersiapkan diri membangun masyarakat.</li>
-                    <li>Menepati Dasa Darma.</li>
+                    {content.kodeKehormatan.triSatyaPoin.map((poin, idx) => (
+                      <li key={idx}>{poin}</li>
+                    ))}
                   </ul>
                 </div>
               </div>
@@ -839,34 +716,25 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                       ⭐
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-white">Dasa Darma Pramuka</h3>
+                      <h3 className="text-base font-bold text-white">
+                        {content.kodeKehormatan.dasaDarmaTitle || 'Dasa Darma Pramuka'}
+                      </h3>
                       <p className="text-[11px] text-stone-400">10 Ketentuan Moral Pandu Indonesia</p>
                     </div>
                   </div>
                   <span className="text-[10px] bg-stone-800 px-2.5 py-1 rounded-full text-stone-300 font-mono">
-                    10 Butir
+                    {content.kodeKehormatan.dasaDarmaItems.length} Butir
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-                  {[
-                    '1. Takwa kepada Tuhan Yang Maha Esa',
-                    '2. Cinta alam dan kasih sayang sesama manusia',
-                    '3. Patriot yang sopan dan ksatria',
-                    '4. Patuh dan suka bermusyawarah',
-                    '5. Rela menolong dan tabah',
-                    '6. Rajin, terampil, dan gembira',
-                    '7. Hemat, cermat, dan bersahaja',
-                    '8. Disiplin, berani, dan setia',
-                    '9. Bertanggung jawab dan dapat dipercaya',
-                    '10. Suci dalam pikiran, perkataan, dan perbuatan',
-                  ].map((darma, idx) => (
+                  {content.kodeKehormatan.dasaDarmaItems.map((darma, idx) => (
                     <div
                       key={idx}
                       className="p-2.5 rounded-xl bg-stone-950/60 border border-stone-800/80 text-stone-300 font-medium flex items-center gap-2 hover:border-amber-600/40 transition-colors"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                      <span>{darma}</span>
+                      <span>{idx + 1}. {darma.replace(/^\d+\.\s*/, '')}</span>
                     </div>
                   ))}
                 </div>
@@ -880,35 +748,33 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                   🕌
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">10 Karakter Pandu SIT</h3>
+                  <h3 className="text-base font-bold text-white">
+                    {content.kodeKehormatan.karakterSITTitle || '10 Karakter Pandu SIT'}
+                  </h3>
                   <p className="text-[11px] text-emerald-400 font-semibold">Muwashafat Kepanduan Islam Terpadu</p>
                 </div>
               </div>
 
               <div className="space-y-2 text-xs">
-                {[
-                  { arab: 'Salimul Aqidah', arti: 'Aqidah yang Bersih & Lurus' },
-                  { arab: 'Shahihul Ibadah', arti: 'Ibadah yang Benar Sesuai Sunnah' },
-                  { arab: 'Matinul Khuluq', arti: 'Akhlak yang Kokoh & Mulia' },
-                  { arab: 'Qawiyyul Jism', arti: 'Fisik yang Kuat & Tangkas' },
-                  { arab: 'Mutsaqqaful Fikr', arti: 'Wawasan Pemikiran yang Luas' },
-                  { arab: 'Mujahidun Linafsihi', arti: 'Pejuang Melawan Hawa Nafsu' },
-                  { arab: 'Harishun \'ala Waqtihi', arti: 'Disiplin Menjaga Waktu' },
-                  { arab: 'Munazhzhamun fi Syu\'unihi', arti: 'Tertib & Rapi dalam Segala Urusan' },
-                  { arab: 'Qadirun \'alal Kasbi', arti: 'Mandiri & Mampu Berdikari' },
-                  { arab: 'Nafi\'un Lighairihi', arti: 'Bermanfaat bagi Orang Lain' },
-                ].map((item, idx) => (
+                {content.kodeKehormatan.karakterSITItems.map((item, idx) => (
                   <div
-                    key={idx}
-                    className="p-2 rounded-xl bg-stone-950/40 border border-stone-800/60 flex items-center justify-between"
+                    key={item.id || idx}
+                    className="p-2.5 rounded-xl bg-stone-950/50 border border-stone-800/60 flex items-center justify-between gap-2"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-lg bg-emerald-950 text-emerald-400 font-mono text-[10px] flex items-center justify-center font-bold">
-                        {idx + 1}
+                      <span className="w-5 h-5 rounded-lg bg-emerald-950 text-emerald-400 font-mono text-[10px] flex items-center justify-center font-bold shrink-0">
+                        {item.nomor || idx + 1}
                       </span>
-                      <span className="font-bold text-white text-[11px]">{item.arab}</span>
+                      <div>
+                        <div className="font-bold text-white text-[11px]">{item.istilahArab}</div>
+                        {item.keterangan && (
+                          <div className="text-[10px] text-stone-400 line-clamp-1">{item.keterangan}</div>
+                        )}
+                      </div>
                     </div>
-                    <span className="text-[10px] text-stone-400">{item.arti}</span>
+                    <span className="text-[10px] text-emerald-400 font-semibold shrink-0 text-right">
+                      {item.arti}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -918,17 +784,22 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
       </section>
 
       {/* Regu & Struktur Pembina */}
-      <section className="py-16 sm:py-20 bg-stone-900 border-b border-stone-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <section id="regu-section" className="py-16 sm:py-20 bg-stone-900 border-b border-stone-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-950/80 border border-amber-800/80 text-amber-400 text-xs font-semibold">
+              <Users className="w-3.5 h-3.5" />
+              <span>Pasukan & Struktur Pasukan</span>
+            </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Struktur Gugus Depan & Pasukan
+              Data Regu Penggalang & Pembina
             </h2>
             <p className="text-stone-400 text-xs sm:text-sm">
-              Pasukan Penggalang Putra dan Putri Pangkalan SMP IT Albashiroh Turen
+              Keluarga besar Pasukan Penggalang Putra ({gudepPa}) dan Putri ({gudepPi})
             </p>
           </div>
 
+          {/* Regu Putra & Putri Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Pasukan Putra */}
             <div className="bg-stone-950 rounded-3xl border border-stone-800 p-6 space-y-4">
@@ -938,43 +809,43 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                     🦅
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">Pasukan Penggalang Putra</h3>
-                    <p className="text-xs text-amber-400 font-semibold">Gudep 24.081</p>
+                    <h3 className="text-base font-bold text-white">
+                      {content.reguDanPembina.namaPasukanPutra || 'Pasukan Penggalang Putra'}
+                    </h3>
+                    <p className="text-xs text-amber-400 font-semibold">Gudep {content.reguDanPembina.noGudepPutra || gudepPa}</p>
                   </div>
                 </div>
                 <span className="text-[10px] bg-stone-800 px-2.5 py-1 rounded-full text-stone-300">
-                  Putra
+                  {content.reguDanPembina.reguPutra.length} Regu Putra
                 </span>
               </div>
 
-              <div className="space-y-2 text-xs">
-                <div className="p-3 rounded-xl bg-stone-900 border border-stone-800 flex items-center justify-between">
-                  <div>
-                    <div className="font-bold text-white">Pembina Satuan Putra</div>
-                    <div className="text-stone-400">AINUL YAQIN, S.S. / KML</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                {content.reguDanPembina.reguPutra.map((regu, rIdx) => (
+                  <div
+                    key={regu.id || rIdx}
+                    className="p-3 rounded-2xl bg-stone-900 border border-stone-800/80 flex items-center gap-3 hover:border-amber-600/40 transition-colors"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-stone-950 border border-stone-800 flex items-center justify-center text-base overflow-hidden shrink-0">
+                      {regu.lambangUrl ? (
+                        <img src={regu.lambangUrl} alt={regu.nama} className="w-full h-full object-cover" />
+                      ) : (
+                        <span>{regu.iconEmoji || '🦅'}</span>
+                      )}
+                    </div>
+                    <div className="overflow-hidden">
+                      <div className="font-bold text-white text-xs truncate">{regu.nama}</div>
+                      <div className="text-[10px] text-amber-400 italic truncate">
+                        "{regu.semboyan || 'Semboyan Regu'}"
+                      </div>
+                      {regu.pinru && (
+                        <div className="text-[10px] text-stone-400 mt-0.5 truncate">
+                          Pinru: {regu.pinru}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-[10px] text-amber-400 bg-amber-950 px-2 py-0.5 rounded border border-amber-800">
-                    KMD / KML
-                  </span>
-                </div>
-
-                <div className="p-3 rounded-xl bg-stone-900 border border-stone-800 space-y-1.5">
-                  <div className="font-semibold text-stone-300 text-[11px]">Regu-Regu Penggalang Putra:</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    <span className="px-2.5 py-1 rounded-lg bg-amber-950/60 border border-amber-800 text-amber-300 text-[11px] font-medium">
-                      Regu Garuda
-                    </span>
-                    <span className="px-2.5 py-1 rounded-lg bg-stone-800 text-stone-300 text-[11px]">
-                      Regu Rajawali
-                    </span>
-                    <span className="px-2.5 py-1 rounded-lg bg-stone-800 text-stone-300 text-[11px]">
-                      Regu Singa
-                    </span>
-                    <span className="px-2.5 py-1 rounded-lg bg-stone-800 text-stone-300 text-[11px]">
-                      Regu Elang
-                    </span>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 
@@ -986,44 +857,94 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                     🌸
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">Pasukan Penggalang Putri</h3>
-                    <p className="text-xs text-emerald-400 font-semibold">Gudep 24.082</p>
+                    <h3 className="text-base font-bold text-white">
+                      {content.reguDanPembina.namaPasukanPutri || 'Pasukan Penggalang Putri'}
+                    </h3>
+                    <p className="text-xs text-emerald-400 font-semibold">Gudep {content.reguDanPembina.noGudepPutri || gudepPi}</p>
                   </div>
                 </div>
                 <span className="text-[10px] bg-stone-800 px-2.5 py-1 rounded-full text-stone-300">
-                  Putri
+                  {content.reguDanPembina.reguPutri.length} Regu Putri
                 </span>
               </div>
 
-              <div className="space-y-2 text-xs">
-                <div className="p-3 rounded-xl bg-stone-900 border border-stone-800 flex items-center justify-between">
-                  <div>
-                    <div className="font-bold text-white">Pembina Satuan Putri</div>
-                    <div className="text-stone-400">Kak Itsna (Pembina Putri)</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                {content.reguDanPembina.reguPutri.map((regu, rIdx) => (
+                  <div
+                    key={regu.id || rIdx}
+                    className="p-3 rounded-2xl bg-stone-900 border border-stone-800/80 flex items-center gap-3 hover:border-emerald-600/40 transition-colors"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-stone-950 border border-stone-800 flex items-center justify-center text-base overflow-hidden shrink-0">
+                      {regu.lambangUrl ? (
+                        <img src={regu.lambangUrl} alt={regu.nama} className="w-full h-full object-cover" />
+                      ) : (
+                        <span>{regu.iconEmoji || '🌸'}</span>
+                      )}
+                    </div>
+                    <div className="overflow-hidden">
+                      <div className="font-bold text-white text-xs truncate">{regu.nama}</div>
+                      <div className="text-[10px] text-emerald-400 italic truncate">
+                        "{regu.semboyan || 'Semboyan Regu'}"
+                      </div>
+                      {regu.pinru && (
+                        <div className="text-[10px] text-stone-400 mt-0.5 truncate">
+                          Pinru: {regu.pinru}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-[10px] text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
-                    Pembina Gudep
-                  </span>
-                </div>
-
-                <div className="p-3 rounded-xl bg-stone-900 border border-stone-800 space-y-1.5">
-                  <div className="font-semibold text-stone-300 text-[11px]">Regu-Regu Penggalang Putri:</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    <span className="px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-[11px] font-medium">
-                      Regu Melati
-                    </span>
-                    <span className="px-2.5 py-1 rounded-lg bg-stone-800 text-stone-300 text-[11px]">
-                      Regu Mawar
-                    </span>
-                    <span className="px-2.5 py-1 rounded-lg bg-stone-800 text-stone-300 text-[11px]">
-                      Regu Dahlia
-                    </span>
-                    <span className="px-2.5 py-1 rounded-lg bg-stone-800 text-stone-300 text-[11px]">
-                      Regu Anggrek
-                    </span>
-                  </div>
-                </div>
+                ))}
               </div>
+            </div>
+          </div>
+
+          {/* Profil Pembina & Pelatih */}
+          <div className="space-y-4 pt-4">
+            <div className="text-center max-w-xl mx-auto space-y-1">
+              <h3 className="text-lg font-bold text-white">Pembina & Pelatih Satuan Mahir</h3>
+              <p className="text-xs text-stone-400">Membimbing santri dengan keteladanan dan keikhlasan bakti</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {content.reguDanPembina.pembinaList.map((pem, idx) => (
+                <div
+                  key={pem.id || idx}
+                  className="p-5 rounded-3xl bg-stone-950 border border-stone-800 space-y-3 relative group hover:border-amber-600/50 transition-all flex flex-col justify-between"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-14 h-14 rounded-2xl overflow-hidden border border-stone-700 bg-stone-900 shrink-0">
+                        {pem.fotoUrl ? (
+                          <img src={pem.fotoUrl} alt={pem.nama} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-stone-500 font-bold text-lg">
+                            👤
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-white text-sm">{pem.nama}</h4>
+                        <div className="text-xs text-amber-400 font-semibold">{pem.jabatan}</div>
+                        <div className="text-[10px] text-stone-400">{pem.gelar}</div>
+                      </div>
+                    </div>
+
+                    {pem.pesanMotivasi && (
+                      <p className="text-xs text-stone-300 italic p-3 rounded-2xl bg-stone-900/80 border border-stone-800/80 leading-relaxed font-serif">
+                        "{pem.pesanMotivasi}"
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="pt-3 border-t border-stone-800/80 flex items-center justify-between text-[11px] text-stone-400">
+                    <div className="flex items-center gap-1.5 text-emerald-400">
+                      <Phone className="w-3.5 h-3.5" />
+                      <span>{pem.kontak || '-'}</span>
+                    </div>
+                    <span className="text-[10px] text-stone-500">Pramuka SIT</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -1043,7 +964,7 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
               </h3>
               <p className="text-stone-400 text-xs max-w-2xl leading-relaxed">
                 Data anggota, pembina, presensi harian, nilai SKU/SKK, buku kas keuangan, hingga inventaris
-                tersimpan rapi secara real-time di spreadsheet sekolah Anda.
+                tersimpan rapi secara real-time di spreadsheet pangkalan Anda.
               </p>
             </div>
 
@@ -1073,7 +994,7 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
                     {pangkalanName}
                   </h4>
                   <p className="text-[11px] text-amber-400">
-                    Gudep {gudepPa} - {gudepPi} Kwarran Turen, Kwarcab Malang
+                    Gudep {gudepPa} - {gudepPi} Kwarran {content.identitas.kwarran || 'Turen'}, Kwarcab {content.identitas.kwarcab || 'Malang'}
                   </p>
                 </div>
               </div>
@@ -1091,19 +1012,21 @@ export const LandingAndLoginPortal: React.FC<LandingAndLoginPortalProps> = ({
               <div className="space-y-1.5 text-[11px]">
                 <div className="flex items-center gap-2">
                   <UserIcon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span>Kak Ainul Yaqin, S.S. / KML</span>
+                  <span>
+                    {content.reguDanPembina.pembinaList[0]?.nama || 'Kak Ainul Yaqin, S.S. / KML'}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>085731436595 (WhatsApp)</span>
+                  <span>{content.identitas.telepon || '085731436595 (WhatsApp)'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                  <span>yaqin446@gmail.com</span>
+                  <span>{content.identitas.email || 'yaqin446@gmail.com'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                  <span>Kec. Turen, Kab. Malang, Jawa Timur</span>
+                  <span>{content.identitas.alamat || 'Kec. Turen, Kab. Malang, Jawa Timur'}</span>
                 </div>
               </div>
             </div>
