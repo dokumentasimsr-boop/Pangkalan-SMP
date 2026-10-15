@@ -21,6 +21,11 @@ import {
   User,
 } from '../types';
 
+/**
+ * URL Web App Google Apps Script default terintegrasi langsung
+ */
+export const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycby-8H2ZkmqDGumaaYQQmOgdTMdC2n_C0sWmZ22VHHONSy3S0CA-2UCCmzDnPxgrob2f/exec';
+
 export interface FullDatabasePayload {
   config?: Partial<AppConfig>;
   users?: User[];
@@ -718,7 +723,27 @@ export function normalizeConfig(raw: unknown, existingConfig?: Partial<AppConfig
     // Case 2: Object
     if (typeof item === 'object' && item !== null) {
       const rec = item as Record<string, unknown>;
-      for (const [k, v] of Object.entries(rec)) {
+      const entries = Object.entries(rec);
+
+      // Check if this object represents a single Key-Value row: e.g. { Key: "namaPangkalan", Value: "..." }
+      let detectedKey = '';
+      let detectedVal = '';
+      for (const [propName, propVal] of entries) {
+        if (propVal === undefined || propVal === null) continue;
+        const strVal = String(propVal).trim();
+        if (!strVal || strVal === ':' || strVal === '=') continue;
+        const normPropName = normalizeKey(propName);
+        if (['key', 'kunci', 'parameter', 'namaparameter', 'kunciparameter', 'item', 'variabel', 'atribut', 'setting', 'uraian', 'jabatan'].includes(normPropName)) {
+          detectedKey = strVal;
+        } else if (['value', 'nilai', 'isi', 'data', 'val'].includes(normPropName)) {
+          if (!detectedVal) detectedVal = strVal;
+        }
+      }
+      if (detectedKey && detectedVal) {
+        registerKv(detectedKey, detectedVal);
+      }
+
+      for (const [k, v] of entries) {
         if (v === undefined || v === null || v === '') continue;
         const normK = normalizeKey(k);
 

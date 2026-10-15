@@ -24,7 +24,8 @@ import { PengaturanView } from './components/PengaturanView';
 import { ManajemenUserView } from './components/ManajemenUserView';
 import { LogAktivitasView } from './components/LogAktivitasView';
 import { LoginModal } from './components/LoginModal';
-import { GasService, FullDatabasePayload } from './services/gasService';
+import { LandingAndLoginPortal } from './components/LandingAndLoginPortal';
+import { GasService, FullDatabasePayload, DEFAULT_GAS_URL } from './services/gasService';
 
 import {
   ActiveTab,
@@ -74,11 +75,11 @@ import {
   initialLogs,
 } from './data/initialData';
 
-// Pembersihan Data Dummy Lama: Memastikan seluruh data dummy lama dihapus dari localStorage
-// agar data yang tampil benar-benar murni sesuai dengan database di Google Spreadsheet
+// Pembersihan Data Dummy Lama & Integrasi URL Google Apps Script:
+// Memastikan data dummy lama dibersihkan dan URL GAS resmi langsung terpasang
 function purgeLegacyDummyData() {
   if (typeof window === 'undefined') return;
-  const purgeKey = 'pramuka_dummy_purged_v3';
+  const purgeKey = 'pramuka_gas_integrated_v5';
   if (localStorage.getItem(purgeKey) === 'true') return;
 
   try {
@@ -87,13 +88,15 @@ function purgeLegacyDummyData() {
     const isDummyAnggota = rawAnggota && (rawAnggota.includes('Muhammad Fatih') || rawAnggota.includes('AGT-0001') || rawAnggota.includes('Abdullah Azzam'));
     const isDummyConfig = rawConfig && (rawConfig.includes('SMP IT ALBASHIROH') || rawConfig.includes('Abdullah S.Pd.I'));
 
-    let preservedGasUrl = '';
+    let preservedGasUrl = DEFAULT_GAS_URL;
     let preservedSheetId = '';
     let preservedSyncOnStart = true;
     if (rawConfig) {
       try {
         const parsed = JSON.parse(rawConfig);
-        preservedGasUrl = parsed.gasWebAppUrl || parsed.googleSheetWebAppUrl || '';
+        if (parsed.gasWebAppUrl && GasService.isValidGasUrl(parsed.gasWebAppUrl) && !parsed.gasWebAppUrl.includes('AKfycbx...')) {
+          preservedGasUrl = parsed.gasWebAppUrl;
+        }
         preservedSheetId = parsed.googleSpreadsheetId || parsed.spreadsheetUrl || '';
         if (parsed.autoSyncOnStart !== undefined) preservedSyncOnStart = parsed.autoSyncOnStart;
       } catch {}
@@ -120,16 +123,20 @@ function purgeLegacyDummyData() {
 
     if (isDummyAnggota || isDummyConfig) {
       storageKeysToClean.forEach(k => localStorage.removeItem(k));
-      if (rawConfig && isDummyConfig) {
-        const cleanCfg: AppConfig = {
-          ...initialConfig,
-          gasWebAppUrl: preservedGasUrl,
-          googleSheetWebAppUrl: preservedGasUrl,
-          googleSpreadsheetId: preservedSheetId,
-          autoSyncOnStart: preservedSyncOnStart,
-        };
-        localStorage.setItem('pramuka_config', JSON.stringify(cleanCfg));
-      }
+    }
+
+    // Pastikan URL Google Apps Script resmi selalu terisi
+    if (rawConfig) {
+      try {
+        const parsed = JSON.parse(rawConfig);
+        if (!parsed.gasWebAppUrl || !parsed.gasWebAppUrl.trim() || parsed.gasWebAppUrl.includes('AKfycbx...')) {
+          parsed.gasWebAppUrl = DEFAULT_GAS_URL;
+          parsed.googleSheetWebAppUrl = DEFAULT_GAS_URL;
+        }
+        localStorage.setItem('pramuka_config', JSON.stringify(parsed));
+      } catch {}
+    } else {
+      localStorage.setItem('pramuka_config', JSON.stringify(initialConfig));
     }
   } catch (err) {
     console.warn('Dummy cleanup warning:', err);
@@ -152,6 +159,12 @@ function MainApp() {
   const [isSyncingGas, setIsSyncingGas] = useState(false);
   const hasAutoPulled = useRef(false);
 
+  // Landing Page & Login Portal View State
+  const [isViewingLanding, setIsViewingLanding] = useState<boolean>(() => {
+    const userSession = localStorage.getItem('pramuka_logged_in');
+    return userSession !== 'true';
+  });
+
   // Authentication State
   const [currentUser, setCurrentUser] = useState<User>(() => {
     const saved = localStorage.getItem('pramuka_current_user');
@@ -166,7 +179,18 @@ function MainApp() {
   // Master Data States (with local persistence)
   const [config, setConfig] = useState<AppConfig>(() => {
     const saved = localStorage.getItem('pramuka_config');
-    return saved ? JSON.parse(saved) : initialConfig;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (!parsed.gasWebAppUrl || !parsed.gasWebAppUrl.trim() || parsed.gasWebAppUrl.includes('AKfycbx...')) {
+          parsed.gasWebAppUrl = DEFAULT_GAS_URL;
+          parsed.googleSheetWebAppUrl = DEFAULT_GAS_URL;
+          localStorage.setItem('pramuka_config', JSON.stringify(parsed));
+        }
+        return parsed;
+      } catch {}
+    }
+    return initialConfig;
   });
 
   const [pembinaList, setPembinaList] = useState<Pembina[]>(() => {
@@ -596,7 +620,9 @@ function MainApp() {
   };
 
   const handleLogout = () => {
-    setIsLoginModalOpen(true);
+    localStorage.removeItem('pramuka_logged_in');
+    setIsViewingLanding(true);
+    showToast('Anda telah keluar dari sesi administrasi.', 'info');
   };
 
   const handleNavigateToPresensi = (jadwal: JadwalLatihan) => {
@@ -625,6 +651,41 @@ function MainApp() {
     users: users.length,
   };
 
+  if (isViewingLanding) {
+    return (
+      <LandingAndLoginPortal
+        config={config}
+        users={users}
+        currentUser={currentUser}
+        onLoginSuccess={(loggedInUser) => {
+          setCurrentUser(loggedInUser);
+          localStorage.setItem('pramuka_logged_in', 'true');
+          setIsViewingLanding(false);
+          showToast(`Selamat datang kembali, ${loggedInUser.nama}! (${loggedInUser.role})`, 'success');
+        }}
+        onEnterAsGuest={() => {
+          const guestUser: User = {
+            id: 'USR-GUEST',
+            username: 'tamu',
+            nama: 'Tamu Peninjau',
+            role: 'PEMBINA',
+            status: 'Aktif',
+            terakhirLogin: 'Baru saja',
+          };
+          setCurrentUser(guestUser);
+          localStorage.setItem('pramuka_logged_in', 'true');
+          setIsViewingLanding(false);
+          showToast('Masuk dalam Mode Tamu (Peninjau).', 'info');
+        }}
+        onContinueToDashboard={() => {
+          localStorage.setItem('pramuka_logged_in', 'true');
+          setIsViewingLanding(false);
+        }}
+        isSyncingGas={isSyncingGas}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900 flex">
       {/* Sidebar Navigation */}
@@ -636,6 +697,7 @@ function MainApp() {
         isOpen={isSidebarOpen}
         setIsOpen={setIsSidebarOpen}
         onLogout={handleLogout}
+        onOpenLandingPage={() => setIsViewingLanding(true)}
       />
 
       {/* Main Content Area */}
@@ -650,6 +712,7 @@ function MainApp() {
           onQuickNavigate={setActiveTab}
           onSyncGas={() => handlePullFromGas(false)}
           isSyncingGas={isSyncingGas}
+          onOpenLandingPage={() => setIsViewingLanding(true)}
         />
 
         {/* Dynamic View Container */}

@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { AppConfig, PangkalanConfig, UserRole } from '../types';
 import { useToast } from './Toast';
-import { GasService } from '../services/gasService';
+import { GasService, DEFAULT_GAS_URL } from '../services/gasService';
 
 interface PengaturanViewProps {
   config: PangkalanConfig;
@@ -317,16 +317,38 @@ export const PengaturanView: React.FC<PengaturanViewProps> = ({
 
           <div className="space-y-4 text-xs">
             <div>
-              <label className="block font-semibold text-stone-700 mb-1">
-                URL Web App Google Apps Script (Exec) *
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block font-semibold text-stone-700">
+                  URL Web App Google Apps Script (Exec) *
+                </label>
+                {formData.gasWebAppUrl === DEFAULT_GAS_URL ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                    <Check className="w-3 h-3 text-emerald-600" />
+                    URL Resmi Terpasang
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData(prev => ({
+                        ...prev,
+                        gasWebAppUrl: DEFAULT_GAS_URL,
+                        googleSheetWebAppUrl: DEFAULT_GAS_URL,
+                      }));
+                    }}
+                    className="text-[11px] text-amber-700 hover:text-amber-900 font-bold underline"
+                  >
+                    Gunakan URL Resmi Default
+                  </button>
+                )}
+              </div>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="url"
                   disabled={!isAdmin}
                   value={formData.gasWebAppUrl || ''}
                   onChange={e => setFormData({ ...formData, gasWebAppUrl: e.target.value })}
-                  placeholder="https://script.google.com/macros/s/AKfycbx.../exec"
+                  placeholder={DEFAULT_GAS_URL}
                   className="flex-1 px-3 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-mono text-xs text-stone-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-700/20"
                 />
                 <button
@@ -340,7 +362,7 @@ export const PengaturanView: React.FC<PengaturanViewProps> = ({
                 </button>
               </div>
               <p className="text-[11px] text-stone-500 mt-1.5">
-                Pastikan Deployment Google Apps Script disetel ke: <strong>Execute as: Me</strong> dan <strong>Who has access: Anyone</strong>.
+                URL Google Apps Script resmi telah terkonfigurasi secara otomatis untuk sinkronisasi langsung dengan database Google Spreadsheet.
               </p>
             </div>
 

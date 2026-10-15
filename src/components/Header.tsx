@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   RefreshCw,
   AlertCircle,
+  Globe,
 } from 'lucide-react';
 import { ActiveTab, AppConfig, User, UserRole } from '../types';
 
@@ -22,6 +23,7 @@ interface HeaderProps {
   onQuickNavigate: (tab: ActiveTab) => void;
   onSyncGas?: () => void;
   isSyncingGas?: boolean;
+  onOpenLandingPage?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -33,6 +35,7 @@ export const Header: React.FC<HeaderProps> = ({
   onQuickNavigate,
   onSyncGas,
   isSyncingGas = false,
+  onOpenLandingPage,
 }) => {
   const [currentDateTime, setCurrentDateTime] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -133,6 +136,18 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right Side Controls */}
         <div className="flex items-center gap-2">
+          {/* Portal Publik / Landing Page Button */}
+          {onOpenLandingPage && (
+            <button
+              onClick={onOpenLandingPage}
+              title="Lihat Landing Page & Portal Publik Kegiatan Pramuka SIT"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 rounded-xl text-xs font-semibold transition-all shadow-xs"
+            >
+              <Globe className="w-3.5 h-3.5 text-amber-700" />
+              <span className="hidden sm:inline">Portal Publik</span>
+            </button>
+          )}
+
           {/* Google Spreadsheet Sync Status / Trigger Button */}
           {config.gasWebAppUrl ? (
             <button

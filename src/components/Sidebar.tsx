@@ -24,6 +24,7 @@ import {
   LogOut,
   ChevronRight,
   Sparkles,
+  Globe,
 } from 'lucide-react';
 import { ActiveTab, AppConfig, User } from '../types';
 
@@ -49,6 +50,7 @@ interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   onLogout: () => void;
+  onOpenLandingPage?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -59,6 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   setIsOpen,
   onLogout,
+  onOpenLandingPage,
 }) => {
   const menuGroups: MenuGroup[] = [
     {
@@ -172,6 +175,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <LogOut className="w-4 h-4" />
           </button>
         </div>
+
+        {/* Quick Portal Switcher */}
+        {onOpenLandingPage && (
+          <div className="px-3 pt-3">
+            <button
+              onClick={() => {
+                onOpenLandingPage();
+                setIsOpen(false);
+              }}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-amber-950/70 to-stone-900 hover:from-amber-900/80 hover:to-stone-800 text-amber-300 border border-amber-700/50 transition-all shadow-xs group"
+            >
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-amber-400 group-hover:rotate-12 transition-transform" />
+                <span>Portal Publik & Kegiatan</span>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-amber-400/70" />
+            </button>
+          </div>
+        )}
 
         {/* Navigation Menu */}
         <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">

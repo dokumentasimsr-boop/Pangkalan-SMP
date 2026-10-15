@@ -20,6 +20,7 @@ import {
   SuratRecord,
   User,
 } from '../types';
+import { DEFAULT_GAS_URL } from '../services/gasService';
 
 export const initialConfig: AppConfig = {
   namaPangkalan: '',
@@ -47,8 +48,8 @@ export const initialConfig: AppConfig = {
   logoPramuka: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Gerakan_Pramuka_Indonesia_WOSM_emblem.svg/200px-Gerakan_Pramuka_Indonesia_WOSM_emblem.svg.png',
   tahunPelajaran: '2026/2027',
   tahunKegiatan: '2026',
-  googleSheetWebAppUrl: '',
-  gasWebAppUrl: '',
+  googleSheetWebAppUrl: DEFAULT_GAS_URL,
+  gasWebAppUrl: DEFAULT_GAS_URL,
   googleSpreadsheetId: '',
   spreadsheetUrl: '',
   autoSyncOnStart: true,
